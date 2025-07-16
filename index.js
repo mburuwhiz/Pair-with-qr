@@ -13,19 +13,30 @@ const fs = require("fs-extra");
 const { Boom } = require("@hapi/boom");
 const PORT = process.env.PORT ||  5000
 const MESSAGE = process.env.MESSAGE ||  `
-╔════◇
-║ 『  *WHIZ-MD  SUCCESSFULLY LINKED*』
-║ *Use Session id to Deploy*
-║
-║  『••• 𝗩𝗶𝘀𝗶𝘁 𝗙𝗼𝗿 𝗛𝗲𝗹𝗽 •••』
-║
-║ *Github Repo*: https://github.com/mburuwhiz/whiz-md
-║ *Scan:* https://pairwithwhizmd.onrender.com
-║ *Contact owner:* +254754783683
-║ *Suport:* https://chat.whatsapp.com/JLmSbTfqf4I2Kh4SNJcWgM
-║  *Note:* Don't provide your SESSION_ID to
-║ anyone otherwise that can access chats
-╚════════════════════════╝
+━━━━━━━━━━━━━━━━━━━━━━━
+  *✅  WHIZ-MD LINKED SUCCESSFULLY*
+━━━━━━━━━━━━━━━━━━━━━━━
+
+📌 You can Continue to Deploy now
+
+*📁 GitHub:*
+https://github.com/mburuwhiz/whiz-md
+
+*🔍 Scan QR Code:*
+https://pairwithwhizmd.onrender.com
+
+*💬 Contact Owner:*
++254 754 783 683
+
+*💡 Support Group:*
+https://chat.whatsapp.com/JLmSbTfqf4I2Kh4SNJcWgM
+
+⚠️ Keep your SESSION_ID private!
+Unauthorized sharing allows others to access your chats.
+
+━━━━━━━━━━━━━━━━━━━━━━━
+🔧 Powered by WHIZ-MD • Built with 💡
+━━━━━━━━━━━━━━━━━━━━━━━
 `
 
 
