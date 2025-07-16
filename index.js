@@ -56,13 +56,13 @@ app.use("/", async (req, res) => {
 
   async function SUHAIL() {
     const { state, saveCreds } = await useMultiFileAuthState(__dirname + '/auth_info_baileys');
-    let responseSent = false; // 🛡️ Prevent double response
+    let responseSent = false;
 
     try {
       let Smd = SuhailWASocket({
         printQRInTerminal: false,
         logger: pino({ level: "silent" }),
-        browser: ["🔧 𝐖𝐇𝐈𝐙-𝐌𝐃 𝐏𝐑𝐎", "9.0.0", "Android"], // ✅ Custom browser name
+        browser: ["🔧 𝐖𝐇𝐈𝐙-𝐌𝐃 𝐏𝐑𝐎", "9.0.0", "Android"],
         auth: state
       });
 
@@ -125,7 +125,7 @@ app.use("/", async (req, res) => {
             </body>
             </html>
           `);
-          return; // ✅ stop further processing for this request
+          return;
         }
 
         if (connection === "open") {
@@ -153,7 +153,10 @@ SESSION-ID ==> ${Scan_Id}
         Smd.ev.on('creds.update', saveCreds);
 
         if (connection === "close") {
-          let reason = new Boom(lastDisconnect?.error)?.output.statusCode;
+          let reason = Boom.isBoom(lastDisconnect?.error) 
+            ? lastDisconnect.error.output.statusCode 
+            : new Boom(lastDisconnect?.error).output.statusCode;
+
           if (reason === DisconnectReason.connectionClosed) {
             console.log("Connection closed!");
           } else if (reason === DisconnectReason.connectionLost) {
