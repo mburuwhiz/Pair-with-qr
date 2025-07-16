@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Scan QR - WHIZ-MD</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="background"></div>
+  <div class="container">
+    <h1>📡 Scan with WhatsApp</h1>
+    <% if (qr) { %>
+      <img src="<%= qr %>" alt="QR Code" class="qr" />
+    <% } else { %>
+      <p>⌛ Waiting for QR code...</p>
+    <% } %>
+    <a href="/generate" class="refresh">🔄 Generate QR</a>
+  </div>
+</body>
+</html>
