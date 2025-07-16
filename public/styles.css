@@ -1,8 +1,4 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
 body, html {
   font-family: "Segoe UI", sans-serif;
@@ -34,48 +30,28 @@ body, html {
   height: 100%;
   position: relative;
   z-index: 1;
-  padding: 1rem;
 }
 
 .container {
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.6);
   padding: 30px;
   border-radius: 12px;
-  box-shadow: 0 0 25px rgba(0, 0, 0, 0.7);
-  width: 100%;
+  box-shadow: 0 0 25px rgba(0,0,0,0.7);
+  width: 90%;
   max-width: 500px;
   text-align: center;
 }
 
-.title {
-  font-size: 2rem;
-  margin-bottom: 10px;
-  color: #4fc3f7;
-}
-
-.subtitle {
-  font-size: 1rem;
-  opacity: 0.9;
-  margin-bottom: 20px;
-}
+.title { font-size: 2rem; margin-bottom: 10px; color: #4fc3f7; }
+.subtitle { font-size: 1rem; opacity: 0.9; margin-bottom: 20px; }
 
 .qr-box {
   border: 2px solid #4fc3f7;
   padding: 20px;
   border-radius: 12px;
-  background: rgba(15, 26, 38, 0.85);
+  background: rgba(15,26,38,0.85);
   max-width: 280px;
-  margin: 0 auto 25px;
-}
-
-.qr-img {
-  width: 260px;
-  height: 260px;
-  border-radius: 10px;
-  box-shadow: 0 0 15px rgba(79, 195, 247, 0.5);
-  background: #fff;
-  margin-bottom: 15px;
-  object-fit: contain;
+  margin: auto auto 25px;
 }
 
 .qr-loader {
@@ -94,26 +70,26 @@ body, html {
   animation: spin 1s linear infinite;
 }
 
+.loading-text {
+  margin-top: 12px;
+  font-size: 1rem;
+  color: #cfcfcf;
+}
+
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
 
-.loading-text {
-  margin-top: 12px;
-  font-size: 1rem;
-  color: #facc15;
-  font-weight: 500;
-  animation: pulse 1.5s infinite;
+.qr-img {
+  width: 260px;
+  height: 260px;
+  border-radius: 10px;
+  box-shadow: 0 0 15px rgba(79,195,247,0.5);
+  background: #fff;
+  margin-bottom: 15px;
 }
 
-@keyframes pulse {
-  0%, 100% { opacity: 0.5; }
-  50% { opacity: 1; }
-}
-
-.timer-container {
-  margin-top: 15px;
-}
+.timer-container { margin-top: 15px; }
 
 .timer-circle {
   position: relative;
@@ -147,20 +123,18 @@ body, html {
   transform: translate(-50%, -50%);
   font-size: 1.2rem;
   font-weight: bold;
-  color: #ffffff;
 }
 
 .timer-label {
   margin-top: 5px;
   font-size: 0.9rem;
   opacity: 0.8;
-  color: #ccc;
 }
 
 .expired-message {
   display: none;
   margin-top: 15px;
-  color: #f87171;
+  color: #ff7675;
   font-weight: bold;
 }
 
@@ -173,21 +147,16 @@ body, html {
   color: #000;
   padding: 10px 20px;
   border: none;
-  border-radius: 25px;
-  font-weight: bold;
+  border-radius: 5px;
   cursor: pointer;
-  transition: background 0.3s ease;
-}
-
-.reload-btn:hover {
-  background: #0288d1;
-  color: white;
+  font-weight: 600;
+  margin-top: 10px;
 }
 
 .instructions {
   text-align: left;
   margin-top: 20px;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255,255,255,0.05);
   padding: 15px;
   border-radius: 8px;
 }
