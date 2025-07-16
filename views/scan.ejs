@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>WHIZ-MD - QR Scanner</title>
+  <title>WHIZ-MD | QR Code Scanner</title>
   <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
@@ -12,8 +12,8 @@
   <div id="app">
     <div class="container">
       <div class="header">
-        <h1>Scan QR to Link</h1>
-        <p>Use WhatsApp to scan and link your WHIZ-MD session</p>
+        <h1>WHIZ-MD</h1>
+        <p>Scan QR Code to Connect Your WhatsApp</p>
       </div>
 
       <div class="qr-container">
@@ -23,29 +23,29 @@
 
         <div class="timer-container">
           <div class="timer-circle">
-            <svg class="timer-svg">
-              <circle class="timer-bg" cx="60" cy="60" r="50"></circle>
-              <circle class="timer-progress" cx="60" cy="60" r="50"></circle>
+            <svg class="timer-svg" width="120" height="120">
+              <circle class="timer-bg" cx="60" cy="60" r="50" />
+              <circle class="timer-progress" cx="60" cy="60" r="50" />
             </svg>
             <div class="timer-text" id="time">30</div>
           </div>
-          <div class="timer-label">Expires in <span id="time-label">seconds</span></div>
+          <div class="timer-label">QR Expires In</div>
         </div>
       </div>
 
       <div class="expired-message" id="expired">
-        <h2>QR Code Expired</h2>
-        <p>Your QR Code has expired. Please refresh the page to get a new one.</p>
+        <h2>⏳ QR Code Expired</h2>
+        <p>Your session QR code has expired. Click below to reload and get a new one.</p>
         <button class="reload-btn" onclick="reloadPage()">🔄 Reload QR</button>
       </div>
 
       <div class="instructions">
-        <h3>How to Connect:</h3>
+        <h3>📱 How to Use</h3>
         <ol>
-          <li>Open <strong>WhatsApp</strong> on your phone</li>
-          <li>Go to <strong>Linked Devices</strong></li>
-          <li>Tap <strong>Link a Device</strong></li>
-          <li>Scan the QR code on this screen</li>
+          <li>Open WhatsApp on your phone</li>
+          <li>Go to Settings → Linked Devices</li>
+          <li>Tap on “Link a Device”</li>
+          <li>Scan the QR code shown above</li>
         </ol>
       </div>
     </div>
@@ -60,6 +60,7 @@
     const timeText = document.getElementById('time');
     const progressCircle = document.querySelector('.timer-progress');
     const expiredBox = document.getElementById('expired');
+    const qrImage = document.getElementById('qrcode');
     let timeLeft = 30;
     const radius = 50;
     const circumference = 2 * Math.PI * radius;
@@ -67,6 +68,7 @@
     progressCircle.style.strokeDasharray = circumference;
     progressCircle.style.strokeDashoffset = 0;
 
+    // Animate countdown
     const timer = setInterval(() => {
       timeLeft--;
       timeText.textContent = timeLeft;
@@ -75,10 +77,26 @@
 
       if (timeLeft <= 0) {
         clearInterval(timer);
-        document.querySelector('.qr-wrapper').style.display = 'none';
+        qrImage.style.display = 'none';
         expiredBox.classList.add('show');
       }
     }, 1000);
+
+    qrImage.onload = () => {
+      console.log("✅ QR Code loaded successfully.");
+      qrImage.alt = "WHIZ-MD QR Code";
+    };
+
+    qrImage.onerror = () => {
+      console.warn("⚠️ Failed to load QR Code.");
+      qrImage.style.display = 'none';
+      expiredBox.innerHTML = `
+        <h2>QR Code Failed</h2>
+        <p>We couldn't load the QR. Please check server or reload.</p>
+        <button class="reload-btn" onclick="reloadPage()">🔄 Try Again</button>
+      `;
+      expiredBox.classList.add('show');
+    };
   </script>
 </body>
 </html>
