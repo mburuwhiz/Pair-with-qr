@@ -1,30 +1,32 @@
 {
   "name": "web-qr",
-  "version": "0.0.1",
-  "description": "A multi functional whatsapp bot Web Qr Scanner.",
+  "version": "0.0.2",
+  "description": "A multifunctional WhatsApp bot QR Web Scanner using Baileys.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js"
   },
   "keywords": [
-    "baileysQr", "MdLogin", "Suhail-Md", "whatsapp-bot", "BotWhatsapp",
-    "whatsappMdLogin", "adiwajshing/baileys", "baileys-md-qr",
-    "multi-device-qr", "md-qr", "bot-qr", "baileysQrScanner", "wabot"
+    "baileysQr", "MdLogin", "WHIZ-MD", "whatsapp-bot",
+    "BotWhatsapp", "whatsappMdLogin", "adiwajshing/baileys",
+    "baileys-md-qr", "multi-device-qr", "md-qr", "bot-qr",
+    "baileysQrScanner", "wabot"
   ],
-  "author": "SuhailTechInfo",
+  "author": "WHIZ • SuhailTechInfo",
   "license": "MIT",
   "dependencies": {
     "@hapi/boom": "^10.0.1",
     "@whiskeysockets/baileys": "6.5.0",
-    "express": "^4.18.2",
+    "axios": "^1.6.8",
     "ejs": "^3.1.9",
-    "fs-extra": "latest",
+    "express": "^4.18.2",
+    "fs-extra": "^11.2.0",
     "pino": "^8.1.0",
-    "qrcode": "latest"
+    "qrcode": "^1.5.1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.dev/SuhailTechInfo/web-qr.git"
+    "url": "https://github.com/SuhailTechInfo/web-qr"
   }
 }
