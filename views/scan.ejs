@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>WHIZ-MD QR Scanner</title>
   <link rel="stylesheet" href="/styles.css" />
 </head>
@@ -10,16 +10,15 @@
   <div class="animated-bg"></div>
   <div class="overlay">
     <div class="container">
-      <h1 class="title">WHIZ-MD QR Login</h1>
-      <p class="subtitle">Scan to link WhatsApp securely</p>
+      <h1 class="title">🔐 WHIZ-MD QR Login</h1>
+      <p class="subtitle">Scan this QR with WhatsApp to link your session</p>
 
       <div class="qr-box">
         <div class="qr-loader" id="loader">
           <div class="spinner"></div>
           <p class="loading-text">Loading QR Code...</p>
         </div>
-
-        <img id="qrcode" src="/qr" alt="QR Code" class="qr-img" style="display:none;" />
+        <img id="qrcode" src="/qr" alt="WHIZ-MD QR Code" class="qr-img" style="display:none;" />
 
         <div class="timer-container" id="timerContainer" style="display:none;">
           <div class="timer-circle">
@@ -29,22 +28,22 @@
             </svg>
             <div class="timer-text" id="time">30</div>
           </div>
-          <p class="timer-label">Time left</p>
+          <p class="timer-label">seconds left</p>
         </div>
 
         <div class="expired-message" id="expired">
           <h2>⏳ QR Expired</h2>
-          <button class="reload-btn" onclick="reloadPage()">🔄 Reload</button>
+          <button class="reload-btn" onclick="reloadPage()">🔄 Reload Only Page</button>
         </div>
       </div>
 
       <div class="instructions">
-        <h3>How to Link WhatsApp</h3>
+        <h3>How to Connect</h3>
         <ol>
           <li>Open WhatsApp on your phone</li>
-          <li>Tap <strong>Menu</strong> > <strong>Linked Devices</strong></li>
-          <li>Select <strong>Link a Device</strong></li>
-          <li>Point your camera to this QR</li>
+          <li>Go to Settings → Linked Devices</li>
+          <li>Tap "Link a Device"</li>
+          <li>Scan this QR Code</li>
         </ol>
       </div>
     </div>
@@ -56,40 +55,40 @@
       setTimeout(() => location.reload(), 300);
     }
 
-    const qrImage = document.getElementById('qrcode');
-    const loader = document.getElementById('loader');
-    const timerBox = document.getElementById('timerContainer');
-    const expired = document.getElementById('expired');
-    const timeText = document.getElementById('time');
-    const progress = document.querySelector('.timer-progress');
+    const loader = document.getElementById("loader");
+    const qrImage = document.getElementById("qrcode");
+    const timerBox = document.getElementById("timerContainer");
+    const expiredBox = document.getElementById("expired");
+    const timeText = document.getElementById("time");
+    const progress = document.querySelector(".timer-progress");
     let timeLeft = 30;
     const radius = 50;
     const circumference = 2 * Math.PI * radius;
-
     progress.style.strokeDasharray = circumference;
 
     qrImage.onload = () => {
-      loader.style.display = 'none';
-      qrImage.style.display = 'block';
-      timerBox.style.display = 'block';
+      loader.style.display = "none";
+      qrImage.style.display = "block";
+      timerBox.style.display = "block";
 
-      const interval = setInterval(() => {
+      const countdown = setInterval(() => {
         timeLeft--;
         timeText.textContent = timeLeft;
         progress.style.strokeDashoffset = circumference - (timeLeft / 30) * circumference;
 
-        if (timeLeft <= 0) {
-          clearInterval(interval);
-          qrImage.style.display = 'none';
-          timerBox.style.display = 'none';
-          expired.classList.add('show');
+        if (timeLeft === 0) {
+          clearInterval(countdown);
+          qrImage.style.display = "none";
+          timerBox.style.display = "none";
+          expiredBox.classList.add("show");
         }
       }, 1000);
     };
 
     qrImage.onerror = () => {
-      loader.innerHTML = "<p>❌ Failed to load QR. Click reload.</p>";
+      loader.innerHTML = "<p>❌ Couldn't load QR. Click reload.</p>";
     };
   </script>
 </body>
 </html>
+
