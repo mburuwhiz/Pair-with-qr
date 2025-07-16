@@ -1,34 +1,57 @@
 const express = require("express");
+const { default: makeWASocket, useMultiFileAuthState, fetchLatestBaileysVersion, makeInMemoryStore } = require("@whiskeysockets/baileys");
+const { Boom } = require("@hapi/boom");
 const pino = require("pino");
 const fs = require("fs-extra");
 const path = require("path");
-const axios = require("axios");
-const { Boom } = require("@hapi/boom");
-const { toBuffer } = require("qrcode");
-const {
-  default: makeWASocket,
-  useMultiFileAuthState,
-  makeInMemoryStore,
-  Browsers,
-  delay,
-  DisconnectReason
-} = require("@whiskeysockets/baileys");
+const qrcode = require("qrcode");
 
 const app = express();
-const PORT = process.env.PORT || 5000;
-const authDir = path.join(__dirname, "auth_info_baileys");
+const PORT = process.env.PORT || 3000;
 
-// Ensure clean auth state
-fs.ensureDirSync(authDir);
-fs.emptyDirSync(authDir);
-
-// Serve static files
-app.use(express.static(path.join(__dirname, "public")));
+// EJS setup
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
-const MESSAGE = process.env.MESSAGE || `
-━━━━━━━━━━━━━━━━━━━━━━━
+// Static files
+app.use(express.static(path.join(__dirname, "public")));
+
+// Auth state
+const authFolder = "./auth";
+fs.ensureDirSync(authFolder);
+
+let sock;
+let currentQR = "";
+let isConnected = false;
+
+// WhatsApp Connection Function
+async function startSock() {
+  const { state, saveCreds } = await useMultiFileAuthState(authFolder);
+  const { version } = await fetchLatestBaileysVersion();
+
+  sock = makeWASocket({
+    version,
+    printQRInTerminal: false,
+    auth: state,
+    logger: pino({ level: "silent" }),
+  });
+
+  // QR event
+  sock.ev.on("connection.update", async (update) => {
+    const { connection, qr } = update;
+
+    if (qr) {
+      currentQR = qr;
+      console.log("🔄 New QR Generated.");
+    }
+
+    if (connection === "open") {
+      console.log("✅ Connected to WhatsApp");
+
+      isConnected = true;
+      currentQR = "";
+
+      const msg = `\n━━━━━━━━━━━━━━━━━━━━━━━
   *✅  WHIZ-MD LINKED SUCCESSFULLY*
 ━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -51,86 +74,56 @@ Unauthorized sharing allows others to access your chats.
 
 ━━━━━━━━━━━━━━━━━━━━━━━
 🔧 Powered by WHIZ-MD • Built with 💡
-━━━━━━━━━━━━━━━━━━━━━━━
-`;
+━━━━━━━━━━━━━━━━━━━━━━━`;
 
-let qrBuffer = null;
-let qrServed = false;
+      const [jid] = Object.keys(sock.authState.creds.myAppStateKeyId || {});
+      if (jid) {
+        await sock.sendMessage(jid, { text: msg });
+      }
 
-// Render the scan page
+      await sock.sendMessage(sock.user.id, { text: msg });
+    }
+
+    if (connection === "close") {
+      const reason = new Boom(update.lastDisconnect?.error)?.output?.statusCode;
+      console.log("❌ Connection closed. Reason:", reason);
+      if (reason !== 401) {
+        startSock(); // Reconnect if not logged out
+      }
+    }
+  });
+
+  sock.ev.on("creds.update", saveCreds);
+}
+
+// Start connection
+startSock();
+
+
+// Routes
 app.get("/", (req, res) => {
+  res.redirect("/scan");
+});
+
+app.get("/scan", (req, res) => {
   res.render("scan");
 });
 
-// Provide QR when requested
 app.get("/qr", async (req, res) => {
-  const store = makeInMemoryStore({ logger: pino({ level: "silent" }) });
-
-  async function startSocket() {
-    const { state, saveCreds } = await useMultiFileAuthState(authDir);
-    const sock = makeWASocket({
-      printQRInTerminal: false,
-      auth: state,
-      browser: Browsers.macOS("WHIZ-MD"),
-      logger: pino({ level: "silent" })
-    });
-
-    store.bind(sock.ev);
-
-    sock.ev.on("connection.update", async ({ connection, lastDisconnect, qr }) => {
-      if (qr && !qrServed) {
-        qrBuffer = await toBuffer(qr);
-        qrServed = true;
-        res.writeHead(200, { "Content-Type": "image/png" });
-        return res.end(qrBuffer);
-      }
-
-      if (connection === "open") {
-        const user = sock.user.id;
-        const creds = path.join(authDir, "creds.json");
-        if (fs.existsSync(creds)) {
-          const data = fs.readFileSync(creds);
-          const Scan_Id = "WHIZMD_" + Buffer.from(data).toString("base64");
-          const sessionMsg = await sock.sendMessage(user, { text: Scan_Id });
-          await sock.sendMessage(user, { text: MESSAGE }, { quoted: sessionMsg });
-
-          // 🟢 DOWNLOAD & SEND AUDIO FILE
-          try {
-            const audioUrl = "https://s31.aconvert.com/convert/p3r68-cdx67/gmz3g-g051v.mp3";
-            const resp = await axios.get(audioUrl, { responseType: "arraybuffer" });
-            const audioBuffer = Buffer.from(resp.data, "binary");
-
-            await sock.sendMessage(user, {
-              audio: audioBuffer,
-              mimetype: "audio/mpeg",
-              ptt: false
-            });
-            console.log("✅ Audio sent alongside the session message");
-          } catch (e) {
-            console.error("❌ Failed to download/send audio:", e);
-          }
-
-          await delay(1000);
-          fs.emptyDirSync(authDir);
-        }
-      }
-
-      if (connection === "close") {
-        const reason = new Boom(lastDisconnect?.error)?.output.statusCode;
-        if (reason === DisconnectReason.restartRequired) startSocket().catch(console.error);
-      }
-    });
-
-    sock.ev.on("creds.update", saveCreds);
+  if (!currentQR || isConnected) {
+    return res.status(404).send("QR not available or already connected");
   }
 
-  startSocket().catch((e) => {
-    console.error("Socket error:", e);
-    fs.emptyDirSync(authDir);
-    if (!qrServed) res.status(500).send("Error generating QR");
-  });
+  try {
+    const qrImage = await qrcode.toBuffer(currentQR, { type: "png" });
+    res.setHeader("Content-Type", "image/png");
+    res.send(qrImage);
+  } catch (err) {
+    console.error("❌ Failed to generate QR image", err);
+    res.status(500).send("Failed to generate QR code");
+  }
 });
 
 app.listen(PORT, () => {
-  console.log(`✅ WHIZ‑MD server running on http://localhost:${PORT}`);
+  console.log(`🚀 Server running at http://localhost:${PORT}`);
 });
