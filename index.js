@@ -1,22 +1,22 @@
+// index.js
 const express = require("express");
 const pino = require("pino");
 const fs = require("fs-extra");
 const path = require("path");
 const { Boom } = require("@hapi/boom");
-const { toDataURL } = require("qrcode");
-const { default: makeWASocket, useMultiFileAuthState, makeInMemoryStore, Browsers, delay, DisconnectReason } = require("@whiskeysockets/baileys");
+const { toBuffer } = require("qrcode");
+const {
+  default: makeWASocket,
+  useMultiFileAuthState,
+  makeInMemoryStore,
+  Browsers,
+  delay,
+  DisconnectReason
+} = require("@whiskeysockets/baileys");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-const authDir = path.join(__dirname, 'auth_info_baileys');
-
-fs.ensureDirSync(authDir);
-fs.emptyDirSync(authDir);
-
-// View Engine & Public
-app.set("view engine", "ejs");
-app.set("views", path.join(__dirname, "views"));
-app.use(express.static(path.join(__dirname, "public")));
+const authDir = path.join(__dirname, "auth_info_baileys");
 
 const MESSAGE = process.env.MESSAGE || `
 ━━━━━━━━━━━━━━━━━━━━━━━
@@ -45,77 +45,72 @@ Unauthorized sharing allows others to access your chats.
 ━━━━━━━━━━━━━━━━━━━━━━━
 `;
 
-let latestQR = "";
-let qrExpireTimeout;
+fs.ensureDirSync(authDir);
+fs.emptyDirSync(authDir);
 
-// Serve scan page
-app.get("/", async (req, res) => {
-  return res.render("scan", {
-    qr: latestQR,
-    message: MESSAGE
+app.use(express.static(path.join(__dirname, "public")));
+app.set("view engine", "ejs");
+app.set("views", path.join(__dirname, "views"));
+
+let qrBuffer = null;
+let qrServed = false;
+
+app.get("/", (req, res) => {
+  res.render("scan");
+});
+
+app.get("/qr", async (req, res) => {
+  const store = makeInMemoryStore({ logger: pino({ level: "silent" }) });
+
+  async function startSocket() {
+    const { state, saveCreds } = await useMultiFileAuthState(authDir);
+    const sock = makeWASocket({
+      printQRInTerminal: false,
+      auth: state,
+      browser: Browsers.macOS("WHIZ-MD"),
+      logger: pino({ level: "silent" })
+    });
+
+    store.bind(sock.ev);
+
+    sock.ev.on("connection.update", async ({ connection, lastDisconnect, qr }) => {
+      if (qr && !qrServed) {
+        qrBuffer = await toBuffer(qr);
+        qrServed = true;
+        res.writeHead(200, { "Content-Type": "image/png" });
+        return res.end(qrBuffer);
+      }
+
+      if (connection === "open") {
+        const user = sock.user.id;
+        const creds = path.join(authDir, "creds.json");
+        if (fs.existsSync(creds)) {
+          const data = fs.readFileSync(creds);
+          const Scan_Id = "WHIZMD_" + Buffer.from(data).toString("base64");
+          await delay(2000);
+          const sent = await sock.sendMessage(user, { text: Scan_Id });
+          await sock.sendMessage(user, { text: MESSAGE }, { quoted: sent });
+          await delay(1000);
+          fs.emptyDirSync(authDir);
+        }
+      }
+
+      if (connection === "close") {
+        const reason = new Boom(lastDisconnect?.error)?.output.statusCode;
+        if (reason === DisconnectReason.restartRequired) startSocket().catch(console.error);
+      }
+    });
+
+    sock.ev.on("creds.update", saveCreds);
+  }
+
+  startSocket().catch((err) => {
+    console.error("Socket failed:", err);
+    fs.emptyDirSync(authDir);
+    if (!qrServed) res.status(500).send("QR error");
   });
 });
 
-// Start Socket
-const store = makeInMemoryStore({ logger: pino({ level: 'silent' }) });
-
-async function startSocket() {
-  const { state, saveCreds } = await useMultiFileAuthState(authDir);
-
-  const sock = makeWASocket({
-    printQRInTerminal: false,
-    auth: state,
-    browser: Browsers.macOS("WHIZ-MD"),
-    logger: pino({ level: 'silent' }),
-  });
-
-  store.bind(sock.ev);
-
-  sock.ev.on("connection.update", async ({ connection, lastDisconnect, qr }) => {
-    if (qr) {
-      latestQR = await toDataURL(qr);
-
-      clearTimeout(qrExpireTimeout);
-      qrExpireTimeout = setTimeout(() => {
-        latestQR = "";
-      }, 30 * 1000); // 30 seconds
-    }
-
-    if (connection === "open") {
-      await delay(2000);
-      const user = sock.user.id;
-
-      const credsPath = path.join(authDir, "creds.json");
-      if (!fs.existsSync(credsPath)) return;
-
-      const credsData = fs.readFileSync(credsPath);
-      const Scan_Id = "WHIZMD_" + Buffer.from(credsData).toString("base64");
-
-      const sessionMsg = await sock.sendMessage(user, { text: Scan_Id });
-      await sock.sendMessage(user, { text: MESSAGE }, { quoted: sessionMsg });
-
-      await delay(1000);
-      fs.emptyDirSync(authDir);
-    }
-
-    if (connection === "close") {
-      const reason = new Boom(lastDisconnect?.error)?.output.statusCode;
-      switch (reason) {
-        case DisconnectReason.restartRequired:
-          console.log("🔄 Restarting...");
-          startSocket().catch(console.error);
-          break;
-        default:
-          console.log("❌ Disconnected:", reason);
-      }
-    }
-  });
-
-  sock.ev.on("creds.update", saveCreds);
-}
-
-startSocket().catch(console.error);
-
 app.listen(PORT, () => {
-  console.log(`✅ WHIZ-MD server is running on http://localhost:${PORT}`);
+  console.log(`✅ WHIZ-MD server running on http://localhost:${PORT}`);
 });
