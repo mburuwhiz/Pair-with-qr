@@ -7,7 +7,21 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js"
   },
-  "keywords": ["baileysQr","MdLogin","Suhail‑Md","whatsapp‑bot","BotWhatsapp","whatsappMdLogin","adiwajshing/baileys","baileys‑md‑qr","multi‑device‑qr","md‑qr","bot‑qr","baileysQrScanner","wabot"],
+  "keywords": [
+    "baileysQr",
+    "MdLogin",
+    "Suhail‑Md",
+    "whatsapp‑bot",
+    "BotWhatsapp",
+    "whatsappMdLogin",
+    "adiwajshing/baileys",
+    "baileys‑md‑qr",
+    "multi‑device‑qr",
+    "md‑qr",
+    "bot‑qr",
+    "baileysQrScanner",
+    "wabot"
+  ],
   "author": "SuhailTechInfo",
   "license": "MIT",
   "dependencies": {
@@ -17,6 +31,12 @@
     "pino": "^8.1.0",
     "express": "^5.1.0",
     "qrcode": "latest"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.0",
+    "typescript": "^5.8.4",
+    "@typescript-eslint/parser": "^8.37.0",
+    "@typescript-eslint/eslint-plugin": "^8.37.0"
   },
   "repository": {
     "type": "git",
