@@ -1,8 +1,8 @@
-// index.js
 const express = require("express");
 const pino = require("pino");
 const fs = require("fs-extra");
 const path = require("path");
+const axios = require("axios");
 const { Boom } = require("@hapi/boom");
 const { toBuffer } = require("qrcode");
 const {
@@ -17,6 +17,15 @@ const {
 const app = express();
 const PORT = process.env.PORT || 5000;
 const authDir = path.join(__dirname, "auth_info_baileys");
+
+// Ensure clean auth state
+fs.ensureDirSync(authDir);
+fs.emptyDirSync(authDir);
+
+// Serve static files
+app.use(express.static(path.join(__dirname, "public")));
+app.set("view engine", "ejs");
+app.set("views", path.join(__dirname, "views"));
 
 const MESSAGE = process.env.MESSAGE || `
 ━━━━━━━━━━━━━━━━━━━━━━━
@@ -45,20 +54,15 @@ Unauthorized sharing allows others to access your chats.
 ━━━━━━━━━━━━━━━━━━━━━━━
 `;
 
-fs.ensureDirSync(authDir);
-fs.emptyDirSync(authDir);
-
-app.use(express.static(path.join(__dirname, "public")));
-app.set("view engine", "ejs");
-app.set("views", path.join(__dirname, "views"));
-
 let qrBuffer = null;
 let qrServed = false;
 
+// Render the scan page
 app.get("/", (req, res) => {
   res.render("scan");
 });
 
+// Provide QR when requested
 app.get("/qr", async (req, res) => {
   const store = makeInMemoryStore({ logger: pino({ level: "silent" }) });
 
@@ -87,9 +91,25 @@ app.get("/qr", async (req, res) => {
         if (fs.existsSync(creds)) {
           const data = fs.readFileSync(creds);
           const Scan_Id = "WHIZMD_" + Buffer.from(data).toString("base64");
-          await delay(2000);
-          const sent = await sock.sendMessage(user, { text: Scan_Id });
-          await sock.sendMessage(user, { text: MESSAGE }, { quoted: sent });
+          const sessionMsg = await sock.sendMessage(user, { text: Scan_Id });
+          await sock.sendMessage(user, { text: MESSAGE }, { quoted: sessionMsg });
+
+          // 🟢 DOWNLOAD & SEND AUDIO FILE
+          try {
+            const audioUrl = "https://s31.aconvert.com/convert/p3r68-cdx67/gmz3g-g051v.mp3";
+            const resp = await axios.get(audioUrl, { responseType: "arraybuffer" });
+            const audioBuffer = Buffer.from(resp.data, "binary");
+
+            await sock.sendMessage(user, {
+              audio: audioBuffer,
+              mimetype: "audio/mpeg",
+              ptt: false
+            });
+            console.log("✅ Audio sent alongside the session message");
+          } catch (e) {
+            console.error("❌ Failed to download/send audio:", e);
+          }
+
           await delay(1000);
           fs.emptyDirSync(authDir);
         }
@@ -104,13 +124,13 @@ app.get("/qr", async (req, res) => {
     sock.ev.on("creds.update", saveCreds);
   }
 
-  startSocket().catch((err) => {
-    console.error("Socket failed:", err);
+  startSocket().catch((e) => {
+    console.error("Socket error:", e);
     fs.emptyDirSync(authDir);
-    if (!qrServed) res.status(500).send("QR error");
+    if (!qrServed) res.status(500).send("Error generating QR");
   });
 });
 
 app.listen(PORT, () => {
-  console.log(`✅ WHIZ-MD server running on http://localhost:${PORT}`);
+  console.log(`✅ WHIZ‑MD server running on http://localhost:${PORT}`);
 });
