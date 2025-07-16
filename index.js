@@ -62,7 +62,7 @@ app.use("/", async (req, res) => {
       let Smd = SuhailWASocket({
         printQRInTerminal: false,
         logger: pino({ level: "silent" }),
-        browser: ["WhizMD", "123.0.0"], // ✅ Custom browser name
+        browser: ["🔧 WHIZ-MD Console", "5.1.0", "Linux"]
         auth: state
       });
 
