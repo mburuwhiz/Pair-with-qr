@@ -56,18 +56,22 @@ app.use("/", async (req, res) => {
 
   async function SUHAIL() {
     const { state, saveCreds } = await useMultiFileAuthState(__dirname + '/auth_info_baileys');
+    let responseSent = false; // 🛡️ Prevent double response
+
     try {
       let Smd = SuhailWASocket({
         printQRInTerminal: false,
         logger: pino({ level: "silent" }),
-        browser: ["Chrome", "WhizMD", "123.0.0"],
+        browser: ["WhizMD", "123.0.0"], // ✅ Custom browser name
         auth: state
       });
 
       Smd.ev.on("connection.update", async (s) => {
         const { connection, lastDisconnect, qr } = s;
 
-        if (qr) {
+        if (qr && !responseSent) {
+          responseSent = true;
+
           const qrBuffer = await toBuffer(qr);
           const base64Qr = qrBuffer.toString('base64');
 
@@ -121,14 +125,16 @@ app.use("/", async (req, res) => {
             </body>
             </html>
           `);
+          return; // ✅ stop further processing for this request
         }
 
-        if (connection == "open") {
+        if (connection === "open") {
           await delay(3000);
           let user = Smd.user.id;
 
           let CREDS = fs.readFileSync(__dirname + '/auth_info_baileys/creds.json');
-          var Scan_Id = "WHIZMD_" + Buffer.from(CREDS).toString('base64');
+          let Scan_Id = "WHIZMD_" + Buffer.from(CREDS).toString('base64');
+
           console.log(`
 ====================  SESSION ID  ==========================                   
 SESSION-ID ==> ${Scan_Id}
@@ -138,6 +144,7 @@ SESSION-ID ==> ${Scan_Id}
           let msgsss = await Smd.sendMessage(user, { text: Scan_Id });
           await Smd.sendMessage(user, { text: MESSAGE }, { quoted: msgsss });
           await delay(1000);
+
           try {
             await fs.emptyDirSync(__dirname + '/auth_info_baileys');
           } catch (e) {}
