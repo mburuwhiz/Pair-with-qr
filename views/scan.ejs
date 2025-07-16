@@ -1,20 +1,69 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Scan QR - WHIZ-MD</title>
-  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/styles.css"/>
 </head>
 <body>
-  <div class="background"></div>
-  <div class="container">
-    <h1>📡 Scan with WhatsApp</h1>
-    <% if (qr) { %>
-      <img src="<%= qr %>" alt="QR Code" class="qr" />
-    <% } else { %>
-      <p>⌛ Waiting for QR code...</p>
-    <% } %>
-    <a href="/generate" class="refresh">🔄 Generate QR</a>
+  <div class="animated-bg"></div>
+  <div id="app">
+    <div class="container">
+      <div class="header">
+        <h1>🔐 WHIZ-MD QR Login</h1>
+        <p>Scan within <strong>30s</strong> or refresh</p>
+      </div>
+
+      <div class="qr-container">
+        <% if (qr) { %>
+          <div class="qr-wrapper">
+            <img src="<%= qr %>" alt="QR Code" id="qrcode"/>
+          </div>
+          <div class="timer-container">
+            <div class="timer-circle">
+              <svg class="timer-svg">
+                <circle class="timer-bg" cx="60" cy="60" r="45" />
+                <circle class="timer-progress" cx="60" cy="60" r="45" id="progress"/>
+              </svg>
+              <div class="timer-text" id="timer">30</div>
+            </div>
+            <div class="timer-label">QR Code Expires In</div>
+          </div>
+        <% } else { %>
+          <div class="expired-message show">
+            <h2>⏱️ QR Expired</h2>
+            <p>Please reload to get a new QR code</p>
+            <button class="reload-btn" onclick="location.reload()">🔄 Reload Page</button>
+          </div>
+        <% } %>
+      </div>
+
+      <div class="message-box">
+        <pre><%= message %></pre>
+      </div>
+    </div>
   </div>
+
+  <script>
+    let timeLeft = 30;
+    const timer = document.getElementById("timer");
+    const progress = document.getElementById("progress");
+    const radius = 45;
+    const circumference = 2 * Math.PI * radius;
+
+    progress.style.strokeDasharray = circumference;
+    progress.style.strokeDashoffset = 0;
+
+    const interval = setInterval(() => {
+      timeLeft--;
+      timer.textContent = timeLeft;
+
+      const offset = circumference - (timeLeft / 30) * circumference;
+      progress.style.strokeDashoffset = offset;
+
+      if (timeLeft <= 0) clearInterval(interval);
+    }, 1000);
+  </script>
 </body>
 </html>
