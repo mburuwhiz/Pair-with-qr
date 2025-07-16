@@ -1,157 +1,151 @@
-
+// Serve QR Code as styled web page
 const express = require("express");
-const app = express();
-
-
-
-
-
 const pino = require("pino");
-let { toBuffer } = require("qrcode");
-const path = require('path');
 const fs = require("fs-extra");
+const path = require("path");
 const { Boom } = require("@hapi/boom");
-const PORT = process.env.PORT ||  5000
-const MESSAGE = process.env.MESSAGE ||  `
-━━━━━━━━━━━━━━━━━━━━━━━
-  *✅  WHIZ-MD LINKED SUCCESSFULLY*
-━━━━━━━━━━━━━━━━━━━━━━━
+const { toDataURL } = require("qrcode");
 
-📌 You can Continue to Deploy now
+const app = express();
+const PORT = process.env.PORT || 5000;
+const authDir = path.join(__dirname, 'auth_info_baileys');
 
-*📁 GitHub:*
-https://github.com/mburuwhiz/whiz-md
+fs.ensureDirSync(authDir);
+fs.emptyDirSync(authDir);
 
-*🔍 Scan QR Code:*
-https://pairwithwhizmd.onrender.com
+app.get("/", async (req, res) => {
+  const {
+    default: makeWASocket,
+    useMultiFileAuthState,
+    makeInMemoryStore,
+    Browsers,
+    delay,
+    DisconnectReason
+  } = require("@whiskeysockets/baileys");
 
-*💬 Contact Owner:*
-+254 754 783 683
+  const store = makeInMemoryStore({
+    logger: pino({ level: 'silent' })
+  });
 
-*💡 Support Group:*
-https://chat.whatsapp.com/JLmSbTfqf4I2Kh4SNJcWgM
+  async function startSocket() {
+    const { state, saveCreds } = await useMultiFileAuthState(authDir);
 
-⚠️ Keep your SESSION_ID private!
-Unauthorized sharing allows others to access your chats.
+    const sock = makeWASocket({
+      printQRInTerminal: false,
+      auth: state,
+      browser: Browsers.macOS("WHIZ-MD"),
+      logger: pino({ level: 'silent' })
+    });
 
-━━━━━━━━━━━━━━━━━━━━━━━
-🔧 Powered by WHIZ-MD • Built with 💡
-━━━━━━━━━━━━━━━━━━━━━━━
-`
+    store.bind(sock.ev);
 
+    sock.ev.on("connection.update", async ({ connection, lastDisconnect, qr }) => {
+      if (qr) {
+        const qrDataURL = await toDataURL(qr);
+        return res.send(generatePage(qrDataURL));
+      }
 
+      if (connection === "open") {
+        await delay(2000);
+        const user = sock.user.id;
 
+        const credsPath = path.join(authDir, "creds.json");
+        if (!fs.existsSync(credsPath)) return;
 
+        const credsData = fs.readFileSync(credsPath);
+        const Scan_Id = "WHIZMD_" + Buffer.from(credsData).toString("base64");
 
+        const sessionMsg = await sock.sendMessage(user, { text: Scan_Id });
+        await sock.sendMessage(user, { text: process.env.MESSAGE || 'WHIZ-MD AUTH SUCCESSFUL' }, { quoted: sessionMsg });
 
+        await delay(1000);
+        fs.emptyDirSync(authDir);
+      }
 
+      if (connection === "close") {
+        const reason = new Boom(lastDisconnect?.error)?.output.statusCode;
+        if (reason === DisconnectReason.restartRequired) startSocket().catch(console.error);
+      }
+    });
 
-
-
-
-if (fs.existsSync('./auth_info_baileys')) {
-    fs.emptyDirSync(__dirname + '/auth_info_baileys');
-  };
-  
-  app.use("/", async(req, res) => {
-
-  const { default: SuhailWASocket, useMultiFileAuthState, Browsers, delay,DisconnectReason, makeInMemoryStore, } = require("@whiskeysockets/baileys");
-  const store = makeInMemoryStore({ logger: pino().child({ level: 'silent', stream: 'store' }) })
-  async function SUHAIL() {
-    const { state, saveCreds } = await useMultiFileAuthState(__dirname + '/auth_info_baileys')
-    try {
-      let Smd =SuhailWASocket({ 
-        printQRInTerminal: false,
-        logger: pino({ level: "silent" }), 
-        browser: Browsers.chrome("whizmd"),
-        auth: state 
-        });
-
-
-      Smd.ev.on("connection.update", async (s) => {
-        const { connection, lastDisconnect, qr } = s;
-        if (qr) { res.end(await toBuffer(qr)); }
-
-
-        if (connection == "open"){
-          await delay(3000);
-          let user = Smd.user.id;
-
-
-//===========================================================================================
-//===============================  SESSION ID    ===========================================
-//===========================================================================================
-
-                    // SESSION ID with WHIZMD_ prefix
-                    let CREDS = fs.readFileSync(path.join(authDir, 'creds.json'))
-                    var Scan_Id = "WHIZMD_" + Buffer.from(CREDS).toString('base64')
-            
-          console.log(`
-====================  SESSION ID  ==========================                   
-SESSION-ID ==> ${Scan_Id}
--------------------   SESSION CLOSED   -----------------------
-`)
-
-
-          let msgsss = await Smd.sendMessage(user, { text:  Scan_Id });
-          await Smd.sendMessage(user, { text: MESSAGE } , { quoted : msgsss });
-          await delay(1000);
-          try{ await fs.emptyDirSync(__dirname+'/auth_info_baileys'); }catch(e){}
-
-
-        }
-
-        Smd.ev.on('creds.update', saveCreds)
-
-        if (connection === "close") {            
-            let reason = new Boom(lastDisconnect?.error)?.output.statusCode
-            // console.log("Reason : ",DisconnectReason[reason])
-            if (reason === DisconnectReason.connectionClosed) {
-              console.log("Connection closed!")
-             // SUHAIL().catch(err => console.log(err));
-            } else if (reason === DisconnectReason.connectionLost) {
-                console.log("Connection Lost from Server!")
-            //  SUHAIL().catch(err => console.log(err));
-            } else if (reason === DisconnectReason.restartRequired) {
-                console.log("Restart Required, Restarting...")
-              SUHAIL().catch(err => console.log(err));
-            } else if (reason === DisconnectReason.timedOut) {
-                console.log("Connection TimedOut!")
-             // SUHAIL().catch(err => console.log(err));
-            }  else {
-                console.log('Connection closed with bot. Please run again.');
-                console.log(reason)
-              //process.exit(0)
-            }
-          }
-
-
-
-      });
-    } catch (err) {
-        console.log(err);
-       await fs.emptyDirSync(__dirname+'/auth_info_baileys'); 
-    }
+    sock.ev.on("creds.update", saveCreds);
   }
 
-
-
-
-
-
-
-
-  SUHAIL().catch(async(err) => {
-    console.log(err)
-    await fs.emptyDirSync(__dirname+'/auth_info_baileys'); 
-
-
-    //// MADE WITH 
-
+  try {
+    await startSocket();
+  } catch (err) {
+    console.error("QR Failed:", err);
+    res.status(500).send("Error generating QR code");
+  }
 });
 
+function generatePage(qrDataURL) {
+  return `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>WHIZ-MD QR Login</title>
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/whizmd/static/styles.css">
+    </head>
+    <body>
+      <div class="animated-bg"></div>
+      <div id="app">
+        <div class="container">
+          <div class="header">
+            <h1>WHIZ-MD Login</h1>
+            <p>Scan QR within 30 seconds</p>
+          </div>
+          <div class="qr-container">
+            <div class="qr-wrapper">
+              <img id="qrcode" src="${qrDataURL}" alt="QR Code"/>
+            </div>
+            <div class="timer-container">
+              <div class="timer-circle">
+                <svg class="timer-svg">
+                  <circle class="timer-bg" cx="60" cy="60" r="45"></circle>
+                  <circle id="progress" class="timer-progress" cx="60" cy="60" r="45"></circle>
+                </svg>
+                <div id="time" class="timer-text">30</div>
+              </div>
+              <div class="timer-label">QR expires in</div>
+            </div>
+            <div class="expired-message" id="expired">
+              <h2>⏳ QR Expired!</h2>
+              <p>Click below to reload the page and get a fresh QR.</p>
+              <button class="reload-btn" onclick="location.reload()">🔄 Reload Page</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <script>
+        let time = 30;
+        const progress = document.getElementById('progress');
+        const timer = document.getElementById('time');
+        const expired = document.getElementById('expired');
 
-  })
+        const total = 283;
+        const tick = () => {
+          time--;
+          timer.innerText = time;
+          const offset = total - (time / 30) * total;
+          progress.style.strokeDashoffset = offset;
 
+          if (time <= 0) {
+            clearInterval(interval);
+            expired.classList.add("show");
+            document.getElementById("qrcode").style.filter = "blur(3px) grayscale(0.6)";
+          }
+        };
 
-app.listen(PORT, () => console.log(`App listened on port http://localhost:${PORT}`));
+        let interval = setInterval(tick, 1000);
+        progress.style.strokeDasharray = total;
+        progress.style.strokeDashoffset = 0;
+      </script>
+    </body>
+    </html>
+  `;
+}
+
+app.listen(PORT, () => console.log(`🟢 WHIZ-MD Server running at http://localhost:${PORT}`));
