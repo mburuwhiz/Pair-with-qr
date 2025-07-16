@@ -8,20 +8,18 @@
 </head>
 <body>
   <div class="animated-bg"></div>
-  <div id="app">
+  <div class="overlay">
     <div class="container">
-      <div class="header">
-        <h1>WHIZ-MD</h1>
-        <p>Scan the QR code using WhatsApp to link your session</p>
-      </div>
+      <h1 class="title">WHIZ-MD QR Login</h1>
+      <p class="subtitle">Scan to link WhatsApp securely</p>
 
-      <div class="qr-section">
+      <div class="qr-box">
         <div class="qr-loader" id="loader">
           <div class="spinner"></div>
-          <p>Loading QR Code...</p>
+          <p class="loading-text">Loading QR Code...</p>
         </div>
 
-        <img id="qrcode" src="/qr" alt="QR Code" style="display:none;"/>
+        <img id="qrcode" src="/qr" alt="QR Code" class="qr-img" style="display:none;" />
 
         <div class="timer-container" id="timerContainer" style="display:none;">
           <div class="timer-circle">
@@ -41,15 +39,14 @@
       </div>
 
       <div class="instructions">
-        <h3>How to Connect</h3>
+        <h3>How to Link WhatsApp</h3>
         <ol>
           <li>Open WhatsApp on your phone</li>
-          <li>Go to Settings → Linked Devices</li>
-          <li>Tap “Link a Device”</li>
-          <li>Scan the code on this page</li>
+          <li>Tap <strong>Menu</strong> > <strong>Linked Devices</strong></li>
+          <li>Select <strong>Link a Device</strong></li>
+          <li>Point your camera to this QR</li>
         </ol>
       </div>
-
     </div>
   </div>
 
