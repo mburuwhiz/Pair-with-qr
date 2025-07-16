@@ -1,46 +1,87 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>WHIZ-MD | Scan QR</title><link rel="stylesheet" href="/styles.css"/></head><body>
-<div class="animated-bg"></div>
-<div class="overlay"><div class="container">
-  <h1 class="title">Scan to Pair WHIZ-MD</h1>
-  <p class="subtitle">Open WhatsApp → Linked Devices → Link a Device</p>
-  <div class="qr-box">
-    <div id="qr-loader" class="qr-loader"><div class="spinner"></div><div class="loading-text">Loading QR Code...</div></div>
-    <img id="qr-img" class="qr-img" style="display:none"/>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>WHIZ-MD | Scan QR</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="animated-bg"></div>
+  <div class="overlay">
+    <div class="container">
+      <h1 class="title">Scan to Pair WHIZ-MD</h1>
+      <p class="subtitle">Open WhatsApp → Linked Devices → Link a Device</p>
+
+      <div class="qr-box">
+        <div id="qr-loader" class="qr-loader">
+          <div class="spinner"></div>
+          <div class="loading-text">Loading QR Code...</div>
+        </div>
+        <img id="qr-img" class="qr-img" style="display:none" />
+      </div>
+
+      <div class="timer-container">
+        <div class="timer-circle">
+          <svg class="timer-svg" width="120" height="120">
+            <circle class="timer-bg" cx="60" cy="60" r="50" />
+            <circle class="timer-progress" cx="60" cy="60" r="50" stroke-dasharray="314" stroke-dashoffset="0" />
+          </svg>
+          <div id="timer-value" class="timer-text">30</div>
+        </div>
+        <div class="timer-label">QR expires in</div>
+        <div id="expired-msg" class="expired-message">❌ QR Expired. Click reload.</div>
+        <button class="reload-btn" onclick="init()">Reload</button>
+      </div>
+
+      <div class="instructions">
+        <h3>Steps:</h3>
+        <ol>
+          <li>Open WhatsApp</li>
+          <li>Go to Linked Devices</li>
+          <li>Tap “Link a Device” & scan QR code</li>
+        </ol>
+      </div>
+    </div>
   </div>
-  <div class="timer-container">
-    <div class="timer-circle"><svg class="timer-svg" width="120" height="120"><circle class="timer-bg" cx="60" cy="60" r="50"/><circle class="timer-progress" cx="60" cy="60" r="50" stroke-dasharray="314" stroke-dashoffset="0"/></svg><div id="timer-value" class="timer-text">30</div></div>
-    <div class="timer-label">QR expires in</div>
-    <div id="expired-msg" class="expired-message">❌ QR Expired. Click reload.</div>
-    <button class="reload-btn" onclick="init()">Reload</button>
-  </div>
-  <div class="instructions"><h3>Steps:</h3><ol><li>Open WhatsApp</li><li>Go to Linked Devices</li><li>Tap Link a Device & Scan QR</li></ol></div>
-</div></div>
-<script>
-  let timerInt;
-  function init(){
-    clearInterval(timerInt);
-    let sec=30;
-    timerInt = setInterval(() => {
-      sec--;
-      document.getElementById("timer-value").textContent = sec;
-      document.querySelector(".timer-progress").style.strokeDashoffset = 314 - (314*sec/30);
-      if(sec<=0){ clearInterval(timerInt); document.getElementById("expired-msg").classList.add("show"); }
-    },1000);
-    document.getElementById("qr-img").style.display="none";
-    document.getElementById("qr-loader").style.display="flex";
-    document.getElementById("expired-msg").classList.remove("show");
-    fetch("/qr").then(r=>{
-      if(r.ok) return r.blob();
-      else throw new Error();
-    }).then(b=>{
-      document.getElementById("qr-img").src = URL.createObjectURL(b);
-      document.getElementById("qr-img").style.display="block";
-      document.getElementById("qr-loader").style.display="none";
-    }).catch(()=>{
-      document.getElementById("qr-loader").style.display="none";
-      document.getElementById("expired-msg").textContent="❌ Failed to load. Reload.";
-      document.getElementById("expired-msg").classList.add("show");
-    });
-  }
-  init();
-</script></body></html>
+
+  <script>
+    let timer;
+    function init(){
+      clearInterval(timer);
+      let sec = 30;
+      document.getElementById("expired-msg").classList.remove("show");
+      timer = setInterval(() => {
+        sec--;
+        document.getElementById("timer-value").textContent = sec;
+        document.querySelector(".timer-progress").style.strokeDashoffset = 314 - (314 * sec / 30);
+        if(sec <= 0){
+          clearInterval(timer);
+          document.getElementById("expired-msg").classList.add("show");
+        }
+      }, 1000);
+
+      document.getElementById("qr-img").style.display = "none";
+      document.getElementById("qr-loader").style.display = "flex";
+
+      fetch("/qr")
+        .then(r => {
+          if(r.ok) return r.blob();
+          throw new Error();
+        })
+        .then(blob => {
+          document.getElementById("qr-img").src = URL.createObjectURL(blob);
+          document.getElementById("qr-img").style.display = "block";
+          document.getElementById("qr-loader").style.display = "none";
+        })
+        .catch(() => {
+          document.getElementById("qr-loader").style.display = "none";
+          const em = document.getElementById("expired-msg");
+          em.textContent = "❌ Failed to load. Reload.";
+          em.classList.add("show");
+        });
+    }
+    init();
+  </script>
+</body>
+</html>
