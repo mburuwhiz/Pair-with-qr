@@ -14,29 +14,16 @@ const { Boom } = require("@hapi/boom");
 const PORT = process.env.PORT ||  5000
 const MESSAGE = process.env.MESSAGE ||  `
 ╔════◇
-║ 『  CLING-MD  SUCCESSFULLY LINKED』
-║ You've completed for  bot deployment.
-╚════════════════════════╝
-╔═════◇
+║ 『  *WHIZ-MD  SUCCESSFULLY LINKED*』
+║ *Use Session id to Deploy*
+║
 ║  『••• 𝗩𝗶𝘀𝗶𝘁 𝗙𝗼𝗿 𝗛𝗲𝗹𝗽 •••』
 ║
-║ Github Repo: https://github.com/Whizmburu/cling-Md
-║ Scan: https://cling-md-katie.onrender.com
-║ Contact owner: +254754783683
-║ Note :Don't provide your SESSION_ID to
-║ anyone otherwise that can access chats
-╚════════════════════════╝
-╔════◇
-║ 『  YOU CAN JOIN HERE FOR MORE』
-║ Private coomunity✨✨✨✨.
-╚════════════════════════╝
-╔═════◇
-║  『••• visit here for more •••』
-║   
-║   
-║ ✨ https://chat.whatsapp.com/BGhx4RFgaODJhD0TsYd2fl
-║ 
-║ Note :Don't provide your SESSION_ID to
+║ *Github Repo*: https://github.com/mburuwhiz/whiz-md
+║ *Scan:* https://pairwithwhizmd.onrender.com
+║ *Contact owner:* +254754783683
+║ *Suport:* https://chat.whatsapp.com/JLmSbTfqf4I2Kh4SNJcWgM
+║  *Note:* Don't provide your SESSION_ID to
 ║ anyone otherwise that can access chats
 ╚════════════════════════╝
 `
@@ -59,13 +46,13 @@ if (fs.existsSync('./auth_info_baileys')) {
 
   const { default: SuhailWASocket, useMultiFileAuthState, Browsers, delay,DisconnectReason, makeInMemoryStore, } = require("@whiskeysockets/baileys");
   const store = makeInMemoryStore({ logger: pino().child({ level: 'silent', stream: 'store' }) })
-  async function WHIZMD() {
+  async function SUHAIL() {
     const { state, saveCreds } = await useMultiFileAuthState(__dirname + '/auth_info_baileys')
     try {
       let Smd =SuhailWASocket({ 
         printQRInTerminal: false,
         logger: pino({ level: "silent" }), 
-        browser: Browsers.ubuntu("WHIZ-MD"),
+        browser: Browsers.chrome("whizmd"),
         auth: state 
         });
 
@@ -84,10 +71,10 @@ if (fs.existsSync('./auth_info_baileys')) {
 //===============================  SESSION ID    ===========================================
 //===========================================================================================
 
-                            // SESSION ID with WHIZMD_ prefix
+                    // SESSION ID with WHIZMD_ prefix
                     let CREDS = fs.readFileSync(path.join(authDir, 'creds.json'))
                     var Scan_Id = "WHIZMD_" + Buffer.from(CREDS).toString('base64')
-
+            
           console.log(`
 ====================  SESSION ID  ==========================                   
 SESSION-ID ==> ${Scan_Id}
@@ -110,16 +97,16 @@ SESSION-ID ==> ${Scan_Id}
             // console.log("Reason : ",DisconnectReason[reason])
             if (reason === DisconnectReason.connectionClosed) {
               console.log("Connection closed!")
-             // WHIZMD().catch(err => console.log(err));
+             // SUHAIL().catch(err => console.log(err));
             } else if (reason === DisconnectReason.connectionLost) {
                 console.log("Connection Lost from Server!")
-            //  WHIZMD().catch(err => console.log(err));
+            //  SUHAIL().catch(err => console.log(err));
             } else if (reason === DisconnectReason.restartRequired) {
                 console.log("Restart Required, Restarting...")
-             WHIZMD().catch(err => console.log(err));
+              SUHAIL().catch(err => console.log(err));
             } else if (reason === DisconnectReason.timedOut) {
                 console.log("Connection TimedOut!")
-             // WHIZMD().catch(err => console.log(err));
+             // SUHAIL().catch(err => console.log(err));
             }  else {
                 console.log('Connection closed with bot. Please run again.');
                 console.log(reason)
@@ -143,7 +130,7 @@ SESSION-ID ==> ${Scan_Id}
 
 
 
-  WHIZMD().catch(async(err) => {
+  SUHAIL().catch(async(err) => {
     console.log(err)
     await fs.emptyDirSync(__dirname+'/auth_info_baileys'); 
 
