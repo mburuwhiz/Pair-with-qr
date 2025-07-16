@@ -116,7 +116,7 @@ SESSION-ID ==> ${Scan_Id}
             //  WHIZMD().catch(err => console.log(err));
             } else if (reason === DisconnectReason.restartRequired) {
                 console.log("Restart Required, Restarting...")
-             // WHIZMD().catch(err => console.log(err));
+             WHIZMD().catch(err => console.log(err));
             } else if (reason === DisconnectReason.timedOut) {
                 console.log("Connection TimedOut!")
              // WHIZMD().catch(err => console.log(err));
