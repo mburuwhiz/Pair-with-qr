@@ -11,7 +11,7 @@ const PORT = process.env.PORT || 5000;
 
 const MESSAGE = process.env.MESSAGE || `
 ━━━━━━━━━━━━━━━━━━━━━━━
-  *✅  WHIZ-MD LINKED SUCCESSFULLY*
+  *✅ 𝐖𝐇𝐈𝐙-𝐌𝐃 𝐋𝐈𝐍𝐊𝐄𝐃 𝐒𝐔𝐂𝐂𝐄𝐒𝐒𝐅𝐔𝐋𝐋𝐘*
 ━━━━━━━━━━━━━━━━━━━━━━━
 
 📌 You can Continue to Deploy now
@@ -62,7 +62,7 @@ app.use("/", async (req, res) => {
       let Smd = SuhailWASocket({
         printQRInTerminal: false,
         logger: pino({ level: "silent" }),
-        browser: ["🔧 WHIZ-MD Console", "5.1.0", "Linux"]
+        browser: ["🔧 𝐖𝐇𝐈𝐙-𝐌𝐃 𝐏𝐑𝐎", "9.0.0", "Android"], // ✅ Custom browser name
         auth: state
       });
 
