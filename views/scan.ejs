@@ -2,92 +2,83 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <title>WHIZ-MD | QR Code Pairing</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>WHIZ-MD QR Scanner</title>
   <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
   <div class="animated-bg"></div>
   <div class="overlay">
     <div class="container">
-      <h1 class="title">🔐 WHIZ-MD QR Login</h1>
-      <p class="subtitle">Scan this QR with WhatsApp to link your session</p>
+      <h1 class="title">PAIR WITH QR</h1>
+      <p class="subtitle">Link your WhatsApp below using the QR Code</p>
 
-      <div class="qr-box">
-        <div class="qr-loader" id="loader">
+      <div class="qr-box" id="qr-section">
+        <div id="qr-loader" class="qr-loader">
           <div class="spinner"></div>
-          <p class="loading-text">Loading QR Code...</p>
+          <div class="loading-text">Loading QR Code...</div>
         </div>
-        <img id="qrcode" src="/qr" alt="WHIZ-MD QR Code" class="qr-img" style="display:none;" />
+        <img id="qr-img" class="qr-img" src="" alt="QR Code" style="display: none;" />
+      </div>
 
-        <div class="timer-container" id="timerContainer" style="display:none;">
-          <div class="timer-circle">
-            <svg class="timer-svg" width="120" height="120">
-              <circle class="timer-bg" cx="60" cy="60" r="50" />
-              <circle class="timer-progress" cx="60" cy="60" r="50" />
-            </svg>
-            <div class="timer-text" id="time">30</div>
-          </div>
-          <p class="timer-label">seconds left</p>
+      <div class="timer-container">
+        <div class="timer-circle">
+          <svg class="timer-svg" width="120" height="120">
+            <circle class="timer-bg" cx="60" cy="60" r="50" />
+            <circle class="timer-progress" cx="60" cy="60" r="50" stroke-dasharray="314" stroke-dashoffset="0"/>
+          </svg>
+          <div class="timer-text" id="timer-value">30</div>
         </div>
-
-        <div class="expired-message" id="expired">
-          <h2>⏳ QR Expired</h2>
-          <button class="reload-btn" onclick="reloadPage()">🔄 Reload Only Page</button>
-        </div>
+        <div class="timer-label">QR expires in</div>
+        <div class="expired-message" id="expired-msg">❌ QR Expired. Click reload to try again.</div>
+        <button class="reload-btn" onclick="location.reload()">Reload</button>
       </div>
 
       <div class="instructions">
-        <h3>How to Connect</h3>
+        <h3>Instructions:</h3>
         <ol>
-          <li>Open WhatsApp on your phone</li>
-          <li>Go to Settings → Linked Devices</li>
-          <li>Tap "Link a Device"</li>
-          <li>Scan this QR Code</li>
+          <li>Open WhatsApp on your device</li>
+          <li>Go to <strong>Linked Devices</strong></li>
+          <li>Tap <strong>Link a Device</strong> and scan the QR code</li>
         </ol>
       </div>
     </div>
   </div>
 
   <script>
-    function reloadPage() {
-      document.querySelector('.reload-btn').innerText = "Reloading...";
-      setTimeout(() => location.reload(), 300);
-    }
-
-    const loader = document.getElementById("loader");
-    const qrImage = document.getElementById("qrcode");
-    const timerBox = document.getElementById("timerContainer");
-    const expiredBox = document.getElementById("expired");
-    const timeText = document.getElementById("time");
+    const qrImg = document.getElementById("qr-img");
+    const loader = document.getElementById("qr-loader");
+    const expiredMsg = document.getElementById("expired-msg");
+    const timerText = document.getElementById("timer-value");
     const progress = document.querySelector(".timer-progress");
+
     let timeLeft = 30;
-    const radius = 50;
-    const circumference = 2 * Math.PI * radius;
-    progress.style.strokeDasharray = circumference;
+    const timerInterval = setInterval(() => {
+      timeLeft--;
+      timerText.textContent = timeLeft;
+      progress.style.strokeDashoffset = 314 - (314 * timeLeft / 30);
 
-    qrImage.onload = () => {
-      loader.style.display = "none";
-      qrImage.style.display = "block";
-      timerBox.style.display = "block";
+      if (timeLeft <= 0) {
+        clearInterval(timerInterval);
+        expiredMsg.classList.add("show");
+        qrImg.style.display = "none";
+        loader.style.display = "none";
+      }
+    }, 1000);
 
-      const countdown = setInterval(() => {
-        timeLeft--;
-        timeText.textContent = timeLeft;
-        progress.style.strokeDashoffset = circumference - (timeLeft / 30) * circumference;
-
-        if (timeLeft === 0) {
-          clearInterval(countdown);
-          qrImage.style.display = "none";
-          timerBox.style.display = "none";
-          expiredBox.classList.add("show");
-        }
-      }, 1000);
-    };
-
-    qrImage.onerror = () => {
-      loader.innerHTML = "<p>❌ Couldn't load QR. Click reload.</p>";
-    };
+    fetch("/qr")
+      .then(res => res.blob())
+      .then(blob => {
+        const url = URL.createObjectURL(blob);
+        qrImg.src = url;
+        qrImg.style.display = "block";
+        loader.style.display = "none";
+      })
+      .catch(() => {
+        expiredMsg.textContent = "❌ Failed to load QR. Click reload.";
+        loader.style.display = "none";
+        expiredMsg.classList.add("show");
+      });
   </script>
 </body>
 </html>
